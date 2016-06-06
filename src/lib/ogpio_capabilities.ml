@@ -37,20 +37,25 @@ let open_and_read_sys_gpio_file gpio_id name =
 let loaded gpio_id =
   try access (path_sys_gpio_file gpio_id "value") [ F_OK ] ; true
   with Unix_error(_, _, _) -> false
-;;
 
 let edge gpio_id =
   let content = open_and_read_sys_gpio_file gpio_id "edge" in
-       if content = "in"  then Some(Direction_in)
-  else if content = "out" then Some(Direction_out)
-  else None
-
-let direction gpio_id =
-  let content = open_and_read_sys_gpio_file gpio_id "direction" in
        if content = "none"    then Some(Edge_none)
   else if content = "rising"  then Some(Edge_rising)
   else if content = "falling" then Some(Edge_falling)
   else if content = "both"    then Some(Edge_both)
+  else None
+
+let can_poll gpio_id =
+  match edge gpio_id with
+   | None
+   | Some(Edge_none) -> false
+   | _               -> true
+
+let direction gpio_id =
+  let content = open_and_read_sys_gpio_file gpio_id "direction" in
+       if content = "in"  then Some(Direction_in)
+  else if content = "out" then Some(Direction_out)
   else None
 
 let value_fd gpio_id flags =

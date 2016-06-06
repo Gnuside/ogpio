@@ -1,15 +1,11 @@
 
-open Core.Std
 open Printf
-
 open Ogpio_watch
 
 type config_t = {
-  gpio_ids         : int list ;
-
-  update_script    : string ;
-
-} [@@deriving sexp]
+  gpio_ids      : int list ;
+  update_script : string ;
+}
 
 (* Parse command line arguments *)
 let parse_cmdline () =
@@ -37,27 +33,32 @@ let parse_cmdline () =
 
   (* Return a value, like a structure *)
   {
-    gpio_ids                  = !conf_gpio_ids ;
-
-    update_script             = !conf_update_script ;
+    gpio_ids      = !conf_gpio_ids ;
+    update_script = !conf_update_script ;
   }
 
 let callback values times =
-  printf "Salut"
+  printf "Test\n%!"
 
 (* main entry point *)
 let () =
   let config =
     try parse_cmdline ()
     with
-    |  Arg.Bad arg -> never_returns @@ failwith arg
-    |  _           -> never_returns @@ failwith "Unexpected error."
+    |  Arg.Bad arg -> failwith arg
+    |  _           -> failwith "Unexpected error."
   in
 
-  begin if List.is_empty config.gpio_ids then
-    never_returns @@ failwith "No --gpio specified"
+  begin if config.gpio_ids = [] then
+    failwith "No --gpio specified"
   end ;
 
-  loop (open_files config.gpio_ids) callback ;
+  let all_gpio_loaded = List.for_all (Ogpio_capabilities.loaded) config.gpio_ids
+  in
 
+  if all_gpio_loaded = true then begin
+    observer config.gpio_ids callback
+  end else
+    failwith "GPIO driver not loaded, or GPIO_SYSFS disabled in the kernel."
+  ;
   exit 0
