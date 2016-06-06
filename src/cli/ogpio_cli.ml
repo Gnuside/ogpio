@@ -37,9 +37,6 @@ let parse_cmdline () =
     update_script = !conf_update_script ;
   }
 
-let callback values times =
-  printf "Test\n%!"
-
 (* main entry point *)
 let () =
   let config =
@@ -54,6 +51,13 @@ let () =
   end ;
 
   let all_gpio_loaded = List.for_all (Ogpio_capabilities.loaded) config.gpio_ids
+  in
+
+  let callback values times =
+    printf "New value\n%!" ;
+    Ogpio_callback.start_callback_script
+      config.update_script
+      (List.combine config.gpio_ids values) times
   in
 
   if all_gpio_loaded = true then begin
