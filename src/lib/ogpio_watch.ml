@@ -79,6 +79,9 @@ let observer gpio_ids callback =
   (* FIXME: we use poll only if *every* GPIO id values can be polled *)
   let can_poll = List.for_all (Ogpio_capabilities.can_poll) gpio_ids
   and fds = open_files gpio_ids in
+  if can_poll = false then
+    printf "Warning: polling is disabled with one of these GPIOs, please update your drivers.\n%!"
+  ;
   loop ~pool_enabled: can_poll
     (fun () -> List.map (read_value) fds)
     fds callback
