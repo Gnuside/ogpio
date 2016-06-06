@@ -2,9 +2,9 @@
 true: strict_sequence, annot, debug
 true: package(unix)
 <src/*>: package(ppx_deriving.std), include
-<src/cli/*>: include, package(core), package(fileutils), package(str)
-<src/lib/*>: include, package(core), package(fileutils), package(str)
-<test/*>: package(ppx_deriving.std), package(core), package(oUnit), package(str)
+<src/cli/*>: include, package(fileutils), package(str)
+<src/lib/*>: include, package(fileutils), package(str)
+<test/*>: package(ppx_deriving.std), package(oUnit), package(str)
 
 # Executable
 # <server.{native,byte}>: package(cow.syntax), package(opium), package(str)
