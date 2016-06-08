@@ -54,19 +54,24 @@ let () =
     failwith "No --gpio specified"
   end ;
 
-  let all_gpio_loaded = List.for_all (Ogpio_capabilities.loaded) config.gpio_ids
-  in
+  List.iter (Ogpio_capabilities.export) config.gpio_ids ;
 
-  let callback values old_values =
-    printf "New value\n%!" ;
-    Ogpio_callback.start_callback_script
-      config.update_script
-      values old_values
-  in
+  try begin
+    let all_gpio_loaded = List.for_all (Ogpio_capabilities.exported) config.gpio_ids
+    in
 
-  if all_gpio_loaded = true then begin
-    observer ~interval: config.interval config.gpio_ids callback
-  end else
-    failwith "GPIO driver not loaded, or GPIO_SYSFS disabled in the kernel."
-  ;
+    let callback values old_values =
+      printf "New value\n%!" ;
+      Ogpio_callback.start_callback_script
+        config.update_script
+        values old_values
+    in
+
+    if all_gpio_loaded = true then begin
+      observer ~interval: config.interval config.gpio_ids callback
+    end else
+      failwith "GPIO driver not loaded, or GPIO_SYSFS disabled in the kernel."
+    ;
+  end with _ ->  List.iter (Ogpio_capabilities.unexport) config.gpio_ids ;
+
   exit 0
