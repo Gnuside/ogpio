@@ -47,8 +47,9 @@ let watch_changes old_values fds =
       let filter_values_changed () =
         List.filter (fun (_, new_value, old_value) -> new_value <> old_value)
           (List.map (fun fd ->
-              let n = read_value fd in
-              (fd, n, snd (List.find (fun e -> fst e = fd) old_values))
+              let n = read_value fd
+              and (_, old_value, _) = List.find (fun (fd', _, _) -> fd' = fd) old_values
+              in (fd, n, old_value)
           ) notified_fds)
       in List.map
         (fun (fd, new_value, _) -> (fd, new_value))
@@ -70,13 +71,16 @@ let rec loop ~interval ~poll_enabled old_values fds callback =
   match read_changes ~interval: interval ~poll_enabled: poll_enabled old_values fds with
    | []     -> loop ~interval: interval ~poll_enabled: poll_enabled old_values fds callback
    | values -> begin
+      let now = gettimeofday () in
       let merge_with_old_values () =
-        List.map (fun (fd, old_value) ->
-            try List.find (fun (fd', _) -> fd = fd') values (* FIXME: big complexity with lists here *)
-            with Not_found -> (fd, old_value))
+        List.map (fun (fd, old_value, time) ->
+            (* FIXME: big complexity with lists here *)
+            try begin let (_, new_value) = List.find (fun (fd', _) -> fd = fd') values
+                in (fd, new_value, now)
+            end with Not_found -> (fd, old_value, time))
           old_values
       in
-      callback values [] (* TODO *) ;
+      callback values old_values ;
       loop ~interval: interval ~poll_enabled: poll_enabled (merge_with_old_values ()) fds callback
     end
 
@@ -95,9 +99,12 @@ let observer ?(interval=0.15) gpio_ids callback =
     snd (List.find (fun (fd', _) -> fd' = fd) fds_ids) in
   let values_to_gpio_ids values =
     List.map (fun (fd, value) -> (fd_to_gpio_id fd, value)) values in
+  let old_values_to_gpio_ids values =
+    List.map (fun (fd, value, time) -> (fd_to_gpio_id fd, value, time)) values in
   let base_values () =
-    List.map (fun fd -> (fd, read_value fd)) fds
-  and callback' values times =
-    callback (values_to_gpio_ids values) times
+    let now = gettimeofday () in
+    List.map (fun fd -> (fd, read_value fd, now)) fds
+  and callback' values old_values =
+    callback (values_to_gpio_ids values) (old_values_to_gpio_ids old_values)
   in
   loop ~interval: interval ~poll_enabled: can_poll (base_values ()) fds (callback')

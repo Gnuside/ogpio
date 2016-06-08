@@ -57,11 +57,11 @@ let () =
   let all_gpio_loaded = List.for_all (Ogpio_capabilities.loaded) config.gpio_ids
   in
 
-  let callback values times =
+  let callback values old_values =
     printf "New value\n%!" ;
     Ogpio_callback.start_callback_script
       config.update_script
-      values times
+      values old_values
   in
 
   if all_gpio_loaded = true then begin
