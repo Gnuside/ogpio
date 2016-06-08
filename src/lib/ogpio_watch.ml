@@ -62,7 +62,7 @@ let read_changes ~interval ~poll_enabled old_values fds =
   else
     (* Not really optimized, but should work for every drivers *)
     let new_values = watch_changes old_values fds in
-    wait_ms interval ; (* TODO: parameter for wait interval *)
+    wait_ms interval ;
     new_values
 
 let rec loop ~interval ~poll_enabled old_values fds callback =
@@ -72,7 +72,7 @@ let rec loop ~interval ~poll_enabled old_values fds callback =
    | values -> begin
       let merge_with_old_values () =
         List.map (fun (fd, old_value) ->
-            try List.find (fun (fd', _) -> fd = fd') values
+            try List.find (fun (fd', _) -> fd = fd') values (* FIXME: big complexity with lists here *)
             with Not_found -> (fd, old_value))
           old_values
       in
