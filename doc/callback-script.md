@@ -20,8 +20,10 @@ The callback script is executed with the same execution environment
 as the main process, with the following added variables :
 
 ~~~
-OGPIO_FILE_${gpio_id}_VALUE    : int (GPIO value)
-OGPIO_FILE_${gpio_id}_DURATION : int (Interval between current change and previous change in milliseconds)
+OGPIO_FILE_${gpio_id}_VALUE      : int (GPIO value)
+OGPIO_FILE_${gpio_id}_OLD_VALUE  : int (old GPIO value)
+OGPIO_FILE_${gpio_id}_DURATION_S : int (Interval between current change and previous change in seconds)
+OGPIO_FILE_${gpio_id}_DURATION_MS : float (Interval between current change and previous change in milliseconds)
 ~~~
 
 Where :

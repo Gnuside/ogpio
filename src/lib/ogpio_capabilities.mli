@@ -13,6 +13,8 @@ val loaded : int -> bool
 
 val edge : int -> edge_t option
 
+val can_poll : int -> bool
+
 val direction : int -> direction_t option
 
-val value_fd : int -> open_flag list -> Unix.file_descr
+val value_fd : int -> Unix.open_flag list -> Unix.file_descr
