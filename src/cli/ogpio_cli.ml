@@ -56,6 +56,8 @@ let () =
 
   List.iter (Ogpio_capabilities.export) config.gpio_ids ;
 
+  Sys.catch_break true ; (* Raise exceptions on user interrupt *)
+
   try begin
     let all_gpio_loaded = List.for_all (Ogpio_capabilities.exported) config.gpio_ids
     in
@@ -72,6 +74,9 @@ let () =
     end else
       failwith "GPIO driver not loaded, or GPIO_SYSFS disabled in the kernel."
     ;
-  end with _ ->  List.iter (Ogpio_capabilities.unexport) config.gpio_ids ;
+  end with _ -> begin
+    printf "Unexport GPIOs...\n%!" ;
+    List.iter (Ogpio_capabilities.unexport) config.gpio_ids
+  end ;
 
   exit 0
