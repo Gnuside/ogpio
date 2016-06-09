@@ -88,6 +88,8 @@ let observer ?(interval=0.15) gpio_ids callback =
   if gpio_ids = [] then
     failwith "gpio_ids parameter should not be empty"
   ;
+  (* Configure direction *)
+  List.iter (fun gpio_id -> Ogpio_capabilities.set_direction gpio_id Ogpio_capabilities.Direction_in) gpio_ids ;
   (* FIXME: we use poll only if *every* GPIO id values can be polled *)
   let can_poll = List.for_all (Ogpio_capabilities.can_poll) gpio_ids
   and fds = open_files gpio_ids in
