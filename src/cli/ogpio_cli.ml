@@ -6,6 +6,7 @@ type config_t = {
   gpio_ids      : int list ;
   update_script : string ;
   interval      : float ;
+  quiet         : bool ;
 }
 
 (* Parse command line arguments *)
@@ -13,9 +14,10 @@ let parse_cmdline () =
   let open Arg in
 
   (* default values *)
-  let conf_update_script             = ref "/etc/ogpio/hook.sh"
-  and conf_gpio_ids                  = ref []
-  and conf_interval                  = ref 0.15
+  let conf_update_script = ref "/etc/ogpio/hook.sh"
+  and conf_gpio_ids      = ref []
+  and conf_interval      = ref 0.15
+  and conf_quiet         = ref false
   in
 
   let set_gpio_id gpio_id =
@@ -28,6 +30,7 @@ let parse_cmdline () =
     ("--gpio"             , Int set_gpio_id               , "\t\t\t\tID of a GPIO (ex: 42)");
     ("--update-script"    , Set_string conf_update_script , "SCRIPT\t\tPath to a script called after GPIO value changed");
     ("--interval"         , Set_float conf_interval       , "\t\t\t\tInterval between read attempts (only used if polling is impossible)");
+    ("--quiet"            , Set conf_quiet                , "\t\t\t\tEnable quiet mode");
   ] in
   let error_fn arg = raise (Bad ("Bad argument : " ^ arg)) in
 
@@ -39,6 +42,7 @@ let parse_cmdline () =
     gpio_ids      = !conf_gpio_ids ;
     update_script = !conf_update_script ;
     interval      = !conf_interval ;
+    quiet         = !conf_quiet ;
   }
 
 (* main entry point *)
@@ -63,7 +67,9 @@ let () =
     in
 
     let callback values old_values =
-      printf "New value\n%!" ;
+      if config.quiet = false then
+        printf "New value\n%!"
+      ;
       Ogpio_callback.start_callback_script
         config.update_script
         values old_values
