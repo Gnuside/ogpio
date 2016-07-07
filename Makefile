@@ -3,9 +3,6 @@ PREFIX=/usr
 MKDIR=mkdir
 INSTALL=install
 
-PROJECT=tawazunCli
-TARGET_HOST=catwan.catwan
-
 CLI_ML=$(wildcard src/cli/*.ml)
 CLI_NATIVE=$(addprefix _build/,$(patsubst %.ml,%.native,$(CLI_ML)))
 
@@ -16,8 +13,8 @@ TEST_ML=$(wildcard test/*.ml)
 TEST_NATIVE=$(addprefix _build/,$(patsubst %.ml,%.native,$(TEST_ML)))
 
 # Default rule - force build order with tests first
-build: 
-	$(MAKE) build-test 
+build:
+	$(MAKE) build-test
 	$(MAKE) build-binaries
 
 all: build install
@@ -66,9 +63,5 @@ clean:
 	rm -f *.native
 	rm -fr _build
 
-deploy: 
-	scp $(PROJECT).native root@$(TARGET_HOST):/usr/bin/$(PROJECT)
-
 TAGS:
 	ctags --links=no -R src
-
